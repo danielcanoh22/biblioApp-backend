@@ -10,3 +10,11 @@ export const {
   DB_PASSWORD = "",
   CORS_ORIGIN = "http://localhost:5173",
 } = process.env;
+
+export const DB_CONFIG = {
+  host: DB_HOST,
+  port: 3306,
+  user: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_SCHEMA,
+};

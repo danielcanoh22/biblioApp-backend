@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node --watch dist/app.js",
+    "bs": "npm run build && npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

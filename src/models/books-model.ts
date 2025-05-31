@@ -1,24 +1,65 @@
-import mysql from "mysql2/promise";
-import { DB_HOST, DB_PASSWORD, DB_SCHEMA, DB_USER } from "../config/config.js";
+import mysql, { RowDataPacket } from "mysql2/promise";
+import { DB_CONFIG } from "../config/config.js";
+import { Book } from "../types/types.js";
 
-const config = {
-  host: DB_HOST,
-  port: 3306,
-  user: DB_USER,
-  password: DB_PASSWORD,
-  database: DB_SCHEMA,
-};
+console.log(DB_CONFIG);
 
-console.log(config);
-
-const connection = await mysql.createConnection(config);
+const connection = await mysql.createConnection(DB_CONFIG);
 
 export class BooksModel {
-  static async getAll() {
-    const [books] = await connection.query(
-      "SELECT title, author_id, genre_id, description, total_copies, available_copies, image, created_at FROM book;"
-    );
+  static async getAllBooks() {
+    try {
+      const [books] = await connection.query<Book[]>(
+        `SELECT 
+          book.id,
+          book.title,
+          book.description,
+          book.total_copies,
+          book.available_copies,
+          book.image,
+          book.created_at,
+          author.name AS author,
+          genre.name AS genre
+        FROM book
+        JOIN author ON book.author_id = author.id
+        JOIN genre ON book.genre_id = genre.id;`
+      );
 
-    return books;
+      if (books.length === 0) return [];
+
+      return books;
+    } catch (error) {
+      throw new Error("Ocurrió un error al obtener los libros");
+    }
+  }
+
+  static async getBookById(id: string) {
+    try {
+      const [books] = await connection.query<Book[]>(
+        `
+        SELECT 
+          book.id,
+          book.title,
+          book.description,
+          book.total_copies,
+          book.available_copies,
+          book.image,
+          book.created_at,
+          author.name AS author,
+          genre.name AS genre
+        FROM book
+        JOIN author ON book.author_id = author.id
+        JOIN genre ON book.genre_id = genre.id
+        WHERE book.id = ?;
+        `,
+        [id]
+      );
+
+      if (books.length === 0) return [];
+
+      return books[0];
+    } catch (error) {
+      throw new Error("Ocurrió un error al obtener el libro");
+    }
   }
 }
