@@ -1,4 +1,4 @@
-import mysql, { RowDataPacket } from "mysql2/promise";
+import mysql from "mysql2/promise";
 import { DB_CONFIG } from "../config/config.js";
 import { Book } from "../types/types.js";
 
@@ -8,9 +8,8 @@ const connection = await mysql.createConnection(DB_CONFIG);
 
 export class BooksModel {
   static async getAllBooks() {
-    try {
-      const [books] = await connection.query<Book[]>(
-        `SELECT 
+    const [books] = await connection.query<Book[]>(
+      `SELECT 
           book.id,
           book.title,
           book.description,
@@ -23,20 +22,16 @@ export class BooksModel {
         FROM book
         JOIN author ON book.author_id = author.id
         JOIN genre ON book.genre_id = genre.id;`
-      );
+    );
 
-      if (books.length === 0) return [];
+    if (books.length === 0) return [];
 
-      return books;
-    } catch (error) {
-      throw new Error("Ocurrió un error al obtener los libros");
-    }
+    return books;
   }
 
   static async getBookById(id: string) {
-    try {
-      const [books] = await connection.query<Book[]>(
-        `
+    const [books] = await connection.query<Book[]>(
+      `
         SELECT 
           book.id,
           book.title,
@@ -52,14 +47,11 @@ export class BooksModel {
         JOIN genre ON book.genre_id = genre.id
         WHERE book.id = ?;
         `,
-        [id]
-      );
+      [id]
+    );
 
-      if (books.length === 0) return [];
+    if (books.length === 0) return undefined;
 
-      return books[0];
-    } catch (error) {
-      throw new Error("Ocurrió un error al obtener el libro");
-    }
+    return books[0];
   }
 }
