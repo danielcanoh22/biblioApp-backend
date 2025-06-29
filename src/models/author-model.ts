@@ -20,4 +20,9 @@ export class AuthorModel {
       return result.insertId;
     }
   }
+
+  static async getAll() {
+    const [authors] = await connection.query("SELECT id, name FROM author;");
+    return authors;
+  }
 }

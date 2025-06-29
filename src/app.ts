@@ -4,6 +4,8 @@ import { createBooksRouter } from "./routes/books-routes.js";
 import { PORT } from "./config/config.js";
 import { corsMiddleware } from "./middlewares/cors.js";
 import { errorHandler } from "./middlewares/error-handler.js";
+import { createAuthorsRouter } from "./routes/authors-routes.js";
+import { createGenresRouter } from "./routes/genres-routes.js";
 
 const app = express();
 
@@ -13,6 +15,8 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/books", createBooksRouter());
+app.use("/authors", createAuthorsRouter());
+app.use("/genres", createGenresRouter());
 
 app.use(errorHandler);
 

@@ -19,4 +19,9 @@ export class GenreModel {
       return result.insertId;
     }
   }
+
+  static async getAll() {
+    const [genres] = await connection.query("SELECT id, name FROM genre;");
+    return genres;
+  }
 }
