@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from "express";
 import { createBooksRouter } from "./routes/books-routes.js";
 import { PORT } from "./config/config.js";
@@ -8,7 +9,8 @@ const app = express();
 
 app.disable("x-powered-by");
 app.use(express.json());
-app.use(corsMiddleware());
+// app.use(corsMiddleware());
+app.use(cors());
 
 app.use("/books", createBooksRouter());
 
