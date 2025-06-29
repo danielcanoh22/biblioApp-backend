@@ -16,3 +16,12 @@ export interface BookIdQueryResult extends RowDataPacket {
   author_id: number;
   genre_id: number;
 }
+
+export interface GetAllOptions {
+  filters: { author?: string; genre?: string };
+  pagination: { limit: number; offset: number };
+}
+
+export interface BooksCountQueryResult extends RowDataPacket {
+  totalItems: number;
+}

@@ -4,6 +4,7 @@ import { BookModel } from "../models/book-model.js";
 import { GenreModel } from "../models/genre-model.js";
 import {
   CreateBookApiDTO,
+  GetBooksQueryDTO,
   UpdateBookApiDTO,
   UpdateBookDbPayload,
 } from "../schemas/book.js";
@@ -28,8 +29,26 @@ export class BookService {
     return newBook;
   }
 
-  static async getAll() {
-    return await BookModel.getAll();
+  static async getAll(query: GetBooksQueryDTO) {
+    const { page, limit, author, genre } = query;
+    const offset = (page - 1) * limit;
+
+    const { books, totalItems } = await BookModel.getAll({
+      filters: { author, genre },
+      pagination: { limit, offset },
+    });
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      books,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        limit,
+      },
+    };
   }
 
   static async getById(id: string) {

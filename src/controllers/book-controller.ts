@@ -1,6 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../middlewares/error-handler.js";
-import { validateApiBook, validateApiPartialBook } from "../schemas/book.js";
+import {
+  validateApiBook,
+  validateApiPartialBook,
+  validateQueryParams,
+} from "../schemas/book.js";
 import { BookService } from "../services/book-service.js";
 
 export class BookController {
@@ -25,7 +29,18 @@ export class BookController {
 
   static async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const books = await BookService.getAll();
+      const validationResult = validateQueryParams(req.query);
+
+      if (!validationResult.success) {
+        res
+          .status(400)
+          .json({ error: validationResult.error.format(), succeeded: false });
+        return;
+      }
+
+      const queryData = validationResult.data;
+      const books = await BookService.getAll(queryData);
+
       res.json({ data: books, succeeded: true });
     } catch (error) {
       next(new AppError("Ha ocurrido un error al obtener los libros"));

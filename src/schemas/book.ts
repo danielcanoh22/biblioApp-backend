@@ -1,5 +1,6 @@
 import z from "zod";
 
+// Schema para los endpoints de crear y actualizar
 const createBookApiSchema = z.object({
   title: z
     .string({
@@ -70,4 +71,18 @@ export function validateApiBook(data: unknown) {
 
 export function validateApiPartialBook(data: unknown) {
   return updateBookSchema.safeParse(data);
+}
+
+// Schema para implementar la paginación y búsqueda con filtros
+export const getBooksQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(50).optional().default(10),
+  author: z.string().optional(),
+  genre: z.string().optional(),
+});
+
+export type GetBooksQueryDTO = z.infer<typeof getBooksQuerySchema>;
+
+export function validateQueryParams(data: unknown) {
+  return getBooksQuerySchema.safeParse(data);
 }
