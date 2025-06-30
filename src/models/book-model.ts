@@ -68,13 +68,13 @@ export class BookModel {
     const values: (string | number)[] = [];
 
     if (filters.author) {
-      whereClauses.push("author.name LIKE ?");
-      values.push(`%${filters.author}%`);
+      whereClauses.push("author.id = ?");
+      values.push(filters.author);
     }
 
     if (filters.genre) {
-      whereClauses.push("genre.name LIKE ?");
-      values.push(`%${filters.genre}%`);
+      whereClauses.push("genre.id = ?");
+      values.push(filters.genre);
     }
 
     const whereStr =
