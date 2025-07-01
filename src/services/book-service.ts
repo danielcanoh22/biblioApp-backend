@@ -8,23 +8,42 @@ import {
   UpdateBookApiDTO,
   UpdateBookDbPayload,
 } from "../schemas/book.js";
+import { AuthorResolvePayload, GenreResolvePayload } from "../types/types.js";
 
 export class BookService {
+  private static async _resolveAuthorId(data: AuthorResolvePayload) {
+    if (data.new_author_name) {
+      const authorId = await AuthorModel.getOrCreate(data.new_author_name);
+      return authorId;
+    }
+    return Number(data.author_id);
+  }
+
+  private static async _resolveGenreId(data: GenreResolvePayload) {
+    if (data.new_genre_name) {
+      const genreId = await GenreModel.getOrCreate(data.new_genre_name);
+      return genreId;
+    }
+    return Number(data.genre_id);
+  }
+
   static async create(data: CreateBookApiDTO) {
-    const { title, author, genre, description, total_copies, image } = data;
+    const [finalAuthorId, finalGenreId] = await Promise.all([
+      this._resolveAuthorId(data),
+      this._resolveGenreId(data),
+    ]);
 
-    const authorId = await AuthorModel.getOrCreate(author);
-    const genreId = await GenreModel.getOrCreate(genre);
+    const bookPayload = {
+      title: data.title,
+      description: data.description,
+      total_copies: data.total_copies,
+      available_copies: data.total_copies,
+      image: data.image,
+      author_id: finalAuthorId,
+      genre_id: finalGenreId,
+    };
 
-    const newBook = await BookModel.create({
-      title,
-      author_id: authorId,
-      genre_id: genreId,
-      description,
-      available_copies: total_copies,
-      total_copies,
-      image,
-    });
+    const newBook = await BookModel.create(bookPayload);
 
     return newBook;
   }
@@ -61,25 +80,35 @@ export class BookService {
     return book;
   }
 
-  static async update(id: string, apiData: UpdateBookApiDTO) {
+  static async update(id: string, data: UpdateBookApiDTO) {
     const dbPayload: UpdateBookDbPayload = {};
 
-    if (apiData.author) {
-      const authorId = await AuthorModel.getOrCreate(apiData.author);
-      dbPayload.author_id = authorId;
+    if (data.title !== undefined) dbPayload.title = data.title;
+    if (data.description !== undefined)
+      dbPayload.description = data.description;
+    if (data.image !== undefined) dbPayload.image = data.image;
+    if (data.total_copies !== undefined)
+      dbPayload.total_copies = data.total_copies;
+    if (data.available_copies !== undefined)
+      dbPayload.available_copies = data.available_copies;
+
+    if (data.author_id || data.new_author_name) {
+      dbPayload.author_id = await this._resolveAuthorId(data);
     }
 
-    if (apiData.genre) {
-      const genreId = await GenreModel.getOrCreate(apiData.genre);
-      dbPayload.genre_id = genreId;
+    if (data.genre_id || data.new_genre_name) {
+      dbPayload.genre_id = await this._resolveGenreId(data);
     }
 
-    if (apiData.title) dbPayload.title = apiData.title;
-    if (apiData.description) dbPayload.description = apiData.description;
-    if (apiData.total_copies) dbPayload.total_copies = apiData.total_copies;
-    if (apiData.image) dbPayload.image = apiData.image;
+    if (Object.keys(dbPayload).length === 0) {
+      return true;
+    }
 
     const isUpdated = await BookModel.update(id, dbPayload);
+
+    if (!isUpdated) {
+      throw new AppError("Libro no encontrado", 404);
+    }
 
     return isUpdated;
   }

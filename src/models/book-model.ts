@@ -120,7 +120,9 @@ export class BookModel {
           book.image,
           book.created_at,
           author.name AS author,
-          genre.name AS genre
+          book.author_id,
+          genre.name AS genre,
+          book.genre_id
         FROM book
         JOIN author ON book.author_id = author.id
         JOIN genre ON book.genre_id = genre.id
