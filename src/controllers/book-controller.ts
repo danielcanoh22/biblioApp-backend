@@ -78,19 +78,14 @@ export class BookController {
         return;
       }
 
-      const isUpdated = BookService.update(id, apiData);
-
-      if (!isUpdated) {
-        res.status(400).json({ message: "El libro no se pudo actualizar" });
-        return;
-      }
+      await BookService.update(id, apiData);
 
       res.json({
         message: "El libro se actualizó correctamente",
         succeeded: true,
       });
     } catch (error) {
-      next(new AppError("Ha ocurrido un error al actualizar el libro"));
+      next(error);
     }
   }
 
