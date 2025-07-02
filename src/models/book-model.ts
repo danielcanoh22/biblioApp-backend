@@ -1,13 +1,11 @@
-import mysql, { ResultSetHeader, RowDataPacket } from "mysql2/promise";
-import { DB_CONFIG } from "../config/config.js";
+import { PoolConnection, ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { BookDbPayload, UpdateBookDbPayload } from "../schemas/book.js";
 import {
   BookIdQueryResult,
   BooksCountQueryResult,
   GetAllOptions,
 } from "../types/types.js";
-
-const connection = await mysql.createConnection(DB_CONFIG);
+import { connection as defaultConnection } from "../db/db.js";
 
 export class BookModel {
   static async create(data: BookDbPayload) {
@@ -21,7 +19,7 @@ export class BookModel {
       image,
     } = data;
 
-    const [bookResult] = await connection.query<ResultSetHeader>(
+    const [bookResult] = await defaultConnection.query<ResultSetHeader>(
       `
       INSERT INTO book (title, author_id, genre_id, description, total_copies, available_copies, image)
       VALUES (?, ?, ?, ?, ?, ?, ?);
@@ -39,7 +37,7 @@ export class BookModel {
 
     const bookId = bookResult.insertId;
 
-    const [bookRows] = await connection.query<RowDataPacket[]>(
+    const [bookRows] = await defaultConnection.query<RowDataPacket[]>(
       `
       SELECT b.id, b.title, a.name AS author, g.name AS genre, b.description, b.total_copies,
             b.available_copies, b.image, b.created_at
@@ -81,7 +79,7 @@ export class BookModel {
       whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
     const countSql = `SELECT COUNT(book.id) AS totalItems ${baseQuery} ${whereStr};`;
-    const [countRows] = await connection.query<BooksCountQueryResult[]>(
+    const [countRows] = await defaultConnection.query<BooksCountQueryResult[]>(
       countSql,
       values
     );
@@ -99,7 +97,7 @@ export class BookModel {
       LIMIT ? OFFSET ?;
     `;
 
-    const [books] = await connection.query<RowDataPacket[]>(dataSql, [
+    const [books] = await defaultConnection.query<RowDataPacket[]>(dataSql, [
       ...values,
       limit,
       offset,
@@ -108,8 +106,11 @@ export class BookModel {
     return { books, totalItems };
   }
 
-  static async getById(id: string) {
-    const [book] = await connection.query<RowDataPacket[]>(
+  static async getById(
+    id: string | number,
+    db: PoolConnection | typeof defaultConnection = defaultConnection
+  ) {
+    const [book] = await db.query<RowDataPacket[]>(
       `
         SELECT 
           book.id,
@@ -152,7 +153,7 @@ export class BookModel {
     WHERE id = ?;
   `;
 
-    const [result] = await connection.query<ResultSetHeader>(sql, [
+    const [result] = await defaultConnection.query<ResultSetHeader>(sql, [
       ...values,
       id,
     ]);
@@ -160,22 +161,22 @@ export class BookModel {
   }
 
   static async delete(id: string) {
-    await connection.beginTransaction();
+    await defaultConnection.beginTransaction();
 
     try {
-      const [bookDataRows] = await connection.query<BookIdQueryResult[]>(
+      const [bookDataRows] = await defaultConnection.query<BookIdQueryResult[]>(
         `SELECT author_id, genre_id FROM book WHERE id = ?`,
         [id]
       );
 
       if (bookDataRows.length === 0) {
-        await connection.rollback();
+        await defaultConnection.rollback();
         return false;
       }
 
       const { author_id, genre_id } = bookDataRows[0];
 
-      const [deleteResult] = await connection.query<ResultSetHeader>(
+      const [deleteResult] = await defaultConnection.query<ResultSetHeader>(
         `DELETE FROM book WHERE id = ?`,
         [id]
       );
@@ -183,30 +184,44 @@ export class BookModel {
       if (deleteResult.affectedRows === 0)
         throw new Error("No se pudo eliminar el libro");
 
-      const [authorBooksCountRows] = await connection.query<RowDataPacket[]>(
-        `SELECT COUNT(*) AS count FROM book WHERE author_id = ?`,
-        [author_id]
-      );
+      const [authorBooksCountRows] = await defaultConnection.query<
+        RowDataPacket[]
+      >(`SELECT COUNT(*) AS count FROM book WHERE author_id = ?`, [author_id]);
 
       if (authorBooksCountRows[0].count === 0) {
-        await connection.query("DELETE FROM author WHERE id = ?", [author_id]);
+        await defaultConnection.query("DELETE FROM author WHERE id = ?", [
+          author_id,
+        ]);
       }
 
-      const [genreBooksCountRows] = await connection.query<RowDataPacket[]>(
-        `SELECT COUNT(*) AS count FROM book WHERE genre_id = ?`,
-        [genre_id]
-      );
+      const [genreBooksCountRows] = await defaultConnection.query<
+        RowDataPacket[]
+      >(`SELECT COUNT(*) AS count FROM book WHERE genre_id = ?`, [genre_id]);
 
       if (genreBooksCountRows[0].count === 0) {
-        await connection.query("DELETE FROM genre WHERE id = ?", [genre_id]);
+        await defaultConnection.query("DELETE FROM genre WHERE id = ?", [
+          genre_id,
+        ]);
       }
 
-      await connection.commit();
+      await defaultConnection.commit();
 
       return true;
     } catch (error) {
-      await connection.rollback();
+      await defaultConnection.rollback();
       throw new Error("Ocurrió un error al eliminar el libro");
     }
+  }
+
+  static async decrementAvailableCopies(
+    id: number | string,
+    db: PoolConnection | typeof defaultConnection = defaultConnection
+  ) {
+    const [result] = await db.query<ResultSetHeader>(
+      "UPDATE book SET available_copies = available_copies - 1 WHERE id = ? AND available_copies > 0;",
+      [id]
+    );
+
+    return result.affectedRows > 0;
   }
 }

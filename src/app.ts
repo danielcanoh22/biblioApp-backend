@@ -6,6 +6,7 @@ import { corsMiddleware } from "./middlewares/cors.js";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { createAuthorsRouter } from "./routes/authors-routes.js";
 import { createGenresRouter } from "./routes/genres-routes.js";
+import { createLoansRouter } from "./routes/loans-routes.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(cors());
 app.use("/books", createBooksRouter());
 app.use("/authors", createAuthorsRouter());
 app.use("/genres", createGenresRouter());
+app.use("/loans", createLoansRouter());
 
 app.use(errorHandler);
 

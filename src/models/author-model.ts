@@ -1,7 +1,5 @@
-import mysql, { ResultSetHeader, RowDataPacket } from "mysql2/promise";
-import { DB_CONFIG } from "../config/config.js";
-
-const connection = await mysql.createConnection(DB_CONFIG);
+import { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+import { connection } from "../db/db.js";
 
 export class AuthorModel {
   static async getOrCreate(name: string) {
