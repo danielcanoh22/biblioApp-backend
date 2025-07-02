@@ -19,10 +19,19 @@ export const createLoanApiSchema = z.object({
 });
 
 export const updateLoanStatusApiSchema = z.object({
-  status: z.enum(["devuelto", "atrasado"], {
+  status: z.enum(["devuelto", "pendiente", "activo"], {
     required_error: "El nuevo estado es obligatorio.",
   }),
 });
+
+// Schema para implementar la paginación y búsqueda con filtros
+export const getLoansQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(50).optional().default(10),
+  userEmail: z.string().email().optional(),
+});
+
+export type GetLoansQueryDTO = z.infer<typeof getLoansQuerySchema>;
 
 export type CreateLoanApiDTO = z.infer<typeof createLoanApiSchema>;
 export type UpdateLoanStatusApiDTO = z.infer<typeof updateLoanStatusApiSchema>;

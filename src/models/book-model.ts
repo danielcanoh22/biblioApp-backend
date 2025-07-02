@@ -85,6 +85,13 @@ export class BookModel {
     );
     const totalItems = countRows[0].totalItems;
 
+    if (totalItems === 0) {
+      return {
+        books: [],
+        totalItems: 0,
+      };
+    }
+
     const dataSql = `
       SELECT 
           book.id, book.title, book.description,

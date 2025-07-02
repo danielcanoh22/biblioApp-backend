@@ -1,4 +1,4 @@
-import { CreateLoanApiDTO } from "../schemas/loan.js";
+import { CreateLoanApiDTO, GetLoansQueryDTO } from "../schemas/loan.js";
 import { BookModel } from "../models/book-model.js";
 import { AppError } from "../middlewares/error-handler.js";
 import { UserModel } from "../models/user-model.js";
@@ -61,5 +61,27 @@ export class LoanService {
         transactionConnection.release();
       }
     }
+  }
+
+  static async getAll(query: GetLoansQueryDTO) {
+    const { page, limit, userEmail } = query;
+    const offset = (page - 1) * limit;
+
+    const { loans, totalItems } = await LoanModel.getAll({
+      filters: { userEmail },
+      pagination: { limit, offset },
+    });
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      loans,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        limit,
+      },
+    };
   }
 }

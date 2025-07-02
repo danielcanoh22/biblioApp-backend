@@ -5,6 +5,7 @@ export const createLoansRouter = () => {
   const loansRouter = Router();
 
   loansRouter.post("/", LoanController.create);
+  loansRouter.get("/", LoanController.getAll);
 
   return loansRouter;
 };
