@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { LOAN_STATUS } from "../types/loan.js";
 
 export const createLoanApiSchema = z.object({
-  bookId: z.coerce
+  book_id: z.coerce
     .number({
       required_error: "El libro es obligatorio.",
       invalid_type_error: "El ID del libro debe ser un número.",
@@ -9,11 +10,11 @@ export const createLoanApiSchema = z.object({
     .int()
     .positive("El ID del libro no es válido."),
 
-  userName: z
+  user_name: z
     .string({ required_error: "El nombre es obligatorio." })
     .min(2, "El nombre debe tener al menos 2 caracteres."),
 
-  userEmail: z
+  user_email: z
     .string({ required_error: "El correo es obligatorio." })
     .email("El formato del correo no es válido."),
 });
@@ -29,7 +30,8 @@ export const updateLoanStatusApiSchema = z.object({
 export const getLoansQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(50).optional().default(10),
-  userEmail: z.string().email().optional(),
+  user_email: z.string().email().optional(),
+  status: z.nativeEnum(LOAN_STATUS).optional(),
 });
 
 export type GetLoansQueryDTO = z.infer<typeof getLoansQuerySchema>;

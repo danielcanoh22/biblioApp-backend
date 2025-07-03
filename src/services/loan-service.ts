@@ -15,7 +15,7 @@ const MAX_LOAN_DAYS = 15;
 
 export class LoanService {
   static async create(data: CreateLoanApiDTO) {
-    const { bookId, userEmail } = data;
+    const { book_id, user_email } = data;
 
     let transactionConnection: PoolConnection | undefined;
 
@@ -24,7 +24,10 @@ export class LoanService {
 
       await transactionConnection.beginTransaction();
 
-      const user = await UserModel.getByEmail(userEmail, transactionConnection);
+      const user = await UserModel.getByEmail(
+        user_email,
+        transactionConnection
+      );
 
       if (!user) {
         throw new AppError(
@@ -33,7 +36,7 @@ export class LoanService {
         );
       }
 
-      const book = await BookModel.getById(bookId, transactionConnection);
+      const book = await BookModel.getById(book_id, transactionConnection);
 
       if (!book || book.available_copies < 1) {
         throw new AppError("Libro no disponible para préstamo", 409);
@@ -67,11 +70,11 @@ export class LoanService {
   }
 
   static async getAll(query: GetLoansQueryDTO) {
-    const { page, limit, userEmail } = query;
+    const { page, limit, user_email, status } = query;
     const offset = (page - 1) * limit;
 
     const { loans, totalItems } = await LoanModel.getAll({
-      filters: { userEmail },
+      filters: { user_email, status },
       pagination: { limit, offset },
     });
 
@@ -143,6 +146,8 @@ export class LoanService {
             transactionConnection
           );
           break;
+        case LOAN_STATUS.REFUSED:
+          break;
 
         default:
           throw new AppError(
@@ -166,5 +171,15 @@ export class LoanService {
     } finally {
       transactionConnection.release();
     }
+  }
+
+  static async delete(id: string | number) {
+    const isDeleted = await LoanModel.delete(id);
+
+    if (!isDeleted) {
+      throw new AppError("Solicitud de préstamo no encontrada", 404);
+    }
+
+    return true;
   }
 }

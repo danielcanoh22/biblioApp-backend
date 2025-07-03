@@ -64,12 +64,18 @@ export class LoanModel {
     const whereClauses: string[] = [];
     const values: (string | number)[] = [];
 
-    if (filters.userEmail) {
+    if (filters.user_email) {
       whereClauses.push("u.email = ?");
-      values.push(filters.userEmail);
+      values.push(filters.user_email);
     }
 
-    const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses}` : "";
+    if (filters.status) {
+      whereClauses.push("l.status = ?");
+      values.push(filters.status);
+    }
+
+    const whereStr =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
     const countSql = `SELECT COUNT(l.id) AS totalItems ${baseQuery} ${whereStr};`;
     const [countRows] = await connection.query<LoansCountQueryResult[]>(
@@ -94,7 +100,15 @@ export class LoanModel {
         b.title AS book_title
         ${baseQuery}
         ${whereStr}
-      ORDER BY l.loan_date DESC
+      ORDER BY
+        CASE l.status
+          WHEN 'pendiente' THEN 1
+          WHEN 'activo'    THEN 2
+          WHEN 'atrasado'  THEN 3
+          WHEN 'devuelto'  THEN 4
+          ELSE 5
+        END,
+      l.loan_date DESC
       LIMIT ? OFFSET ?;
     `;
 
@@ -159,5 +173,15 @@ export class LoanModel {
     return result.affectedRows > 0;
   }
 
-  static async delete() {}
+  static async delete(id: string | number) {
+    const [result] = await connection.query<ResultSetHeader>(
+      `
+      DELETE FROM loan
+      WHERE id = ?;
+      `,
+      [id]
+    );
+
+    return result.affectedRows > 0;
+  }
 }

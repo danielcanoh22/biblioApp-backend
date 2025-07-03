@@ -92,4 +92,19 @@ export class LoanController {
       next(error);
     }
   }
+
+  static async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      await LoanService.delete(id);
+
+      res.json({
+        message: "La solicitud de préstamo se eliminó correctamente",
+        succeeded: true,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
