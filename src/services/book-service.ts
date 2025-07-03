@@ -2,6 +2,7 @@ import { AppError } from "../middlewares/error-handler.js";
 import { AuthorModel } from "../models/author-model.js";
 import { BookModel } from "../models/book-model.js";
 import { GenreModel } from "../models/genre-model.js";
+import { LoanModel } from "../models/loan-model.js";
 import {
   CreateBookApiDTO,
   GetBooksQueryDTO,
@@ -114,6 +115,15 @@ export class BookService {
   }
 
   static async delete(id: string) {
+    const activeLoans = await LoanModel.findActiveLoansByBookId(id);
+
+    if (activeLoans.length > 0) {
+      throw new AppError(
+        "Este libro no se puede eliminar porque tiene préstamos activos o pendientes",
+        409
+      );
+    }
+
     const isDeleted = await BookModel.delete(id);
 
     if (!isDeleted) {
