@@ -9,7 +9,9 @@ import { UserModel } from "../models/user-model.js";
 import { LoanModel } from "../models/loan-model.js";
 import { connection } from "../db/db.js";
 import { PoolConnection } from "mysql2/promise";
-import { LOAN_STATUS } from "../types/loan.js";
+import { LOAN_STATUS, LoanFilters } from "../types/loan.js";
+import { USER_ROLE } from "../types/user.js";
+import { JwtPayload } from "../types/express.js";
 
 const MAX_LOAN_DAYS = 15;
 
@@ -69,12 +71,19 @@ export class LoanService {
     }
   }
 
-  static async getAll(query: GetLoansQueryDTO) {
+  static async getAll(user: JwtPayload, query: GetLoansQueryDTO) {
     const { page, limit, user_email, status } = query;
     const offset = (page - 1) * limit;
 
+    const filters: LoanFilters = { status };
+
+    if (user.role === USER_ROLE.ADMIN) {
+      if (user_email) filters.user_email = user_email;
+      else filters.user_email = user.email;
+    }
+
     const { loans, totalItems } = await LoanModel.getAll({
-      filters: { user_email, status },
+      filters,
       pagination: { limit, offset },
     });
 
@@ -173,7 +182,16 @@ export class LoanService {
     }
   }
 
-  static async delete(id: string | number) {
+  static async delete(id: string | number, user: JwtPayload) {
+    const loan = await LoanModel.getById(id);
+    if (!loan) {
+      throw new AppError("Préstamo no encontrado", 404);
+    }
+
+    if (user.role !== USER_ROLE.ADMIN && loan.user_id !== user.id) {
+      throw new AppError("No tienes permiso para cancelar este préstamo.", 403);
+    }
+
     const isDeleted = await LoanModel.delete(id);
 
     if (!isDeleted) {

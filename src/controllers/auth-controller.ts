@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { loginSchema, registerSchema } from "../schemas/auth.js";
 import { AuthService } from "../services/auth-service.js";
+import { NODE_ENV } from "../config/config.js";
 
 export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
@@ -38,10 +39,14 @@ export class AuthController {
 
       const { user, token } = await AuthService.login(validationResult.data);
 
-      res.status(200).json({
-        succeeded: true,
-        data: { user, token },
+      res.cookie("authToken", token, {
+        httpOnly: true,
+        secure: NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
       });
+
+      res.status(200).json({ data: { user }, succeeded: true });
     } catch (error) {
       next(error);
     }

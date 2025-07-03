@@ -18,10 +18,10 @@ app.use(cors());
 
 app.use("/auth", createAuthRouter());
 
-app.use("/books", createBooksRouter());
-app.use("/authors", createAuthorsRouter());
-app.use("/genres", createGenresRouter());
-app.use("/loans", createLoansRouter());
+app.use("/api/books", createBooksRouter());
+app.use("/api/authors", createAuthorsRouter());
+app.use("/api/genres", createGenresRouter());
+app.use("/api/loans", createLoansRouter());
 
 app.use(errorHandler);
 

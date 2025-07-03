@@ -38,8 +38,12 @@ export class LoanController {
         return;
       }
 
+      if (!req.user) {
+        throw new AppError("Usuario no autenticado", 401);
+      }
+
       const queryData = validationResult.data;
-      const loans = await LoanService.getAll(queryData);
+      const loans = await LoanService.getAll(req.user, queryData);
 
       res.json({ data: loans, succeeded: true });
     } catch (error) {
@@ -95,9 +99,13 @@ export class LoanController {
 
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
+      if (!req.user) {
+        throw new AppError("Usuario no autenticado", 401);
+      }
+
       const { id } = req.params;
 
-      await LoanService.delete(id);
+      await LoanService.delete(id, req.user);
 
       res.json({
         message: "La solicitud de préstamo se eliminó correctamente",

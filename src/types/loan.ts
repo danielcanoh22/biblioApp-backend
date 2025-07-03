@@ -12,11 +12,13 @@ export type LoanData = {
   book_id: number;
   due_date: Date;
 };
+
+export type LoanFilters = {
+  user_email?: string;
+  status?: LOAN_STATUS;
+};
 export interface GetAllLoansOptions {
-  filters: {
-    user_email?: string;
-    status?: LOAN_STATUS;
-  };
+  filters: LoanFilters;
   pagination: {
     limit: number;
     offset: number;

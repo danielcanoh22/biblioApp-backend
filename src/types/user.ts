@@ -1,12 +1,4 @@
 import { RowDataPacket } from "mysql2";
-import { string } from "zod/v4";
-
-// export type User = {
-//   id: number;
-//   name: string;
-//   email: string;
-//   role: "admin" | "user";
-// };
 
 export enum USER_ROLE {
   ADMIN = "admin",

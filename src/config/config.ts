@@ -11,6 +11,7 @@ export const {
   CORS_ORIGIN = "http://localhost:5173",
 
   JWT_SECRET = "",
+  NODE_ENV,
 } = process.env;
 
 export const DB_CONFIG = {
