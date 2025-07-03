@@ -6,6 +6,12 @@ export enum LOAN_STATUS {
   REFUSED = "rechazado",
   APPROVED = "activo",
 }
+
+export type LoanData = {
+  user_id: number;
+  book_id: number;
+  due_date: Date;
+};
 export interface GetAllLoansOptions {
   filters: {
     user_email?: string;

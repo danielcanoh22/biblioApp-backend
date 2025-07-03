@@ -9,6 +9,8 @@ export const {
   DB_USER = "",
   DB_PASSWORD = "",
   CORS_ORIGIN = "http://localhost:5173",
+
+  JWT_SECRET = "",
 } = process.env;
 
 export const DB_CONFIG = {

@@ -7,6 +7,7 @@ import { errorHandler } from "./middlewares/error-handler.js";
 import { createAuthorsRouter } from "./routes/authors-routes.js";
 import { createGenresRouter } from "./routes/genres-routes.js";
 import { createLoansRouter } from "./routes/loans-routes.js";
+import { createAuthRouter } from "./routes/auth-routes.js";
 
 const app = express();
 
@@ -14,6 +15,8 @@ app.disable("x-powered-by");
 app.use(express.json());
 // app.use(corsMiddleware());
 app.use(cors());
+
+app.use("/auth", createAuthRouter());
 
 app.use("/books", createBooksRouter());
 app.use("/authors", createAuthorsRouter());

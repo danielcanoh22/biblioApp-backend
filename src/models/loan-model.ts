@@ -3,15 +3,10 @@ import { connection, connection as defaultConnection } from "../db/db.js";
 import {
   GetAllLoansOptions,
   Loan,
+  LoanData,
   LoansCountQueryResult,
 } from "../types/loan.js";
 import { UpdateLoanStatusApiDTO } from "../schemas/loan.js";
-
-type LoanData = {
-  user_id: number;
-  book_id: number;
-  due_date: Date;
-};
 
 export class LoanModel {
   static async create(
