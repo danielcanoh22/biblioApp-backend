@@ -19,9 +19,10 @@ export const createLoanApiSchema = z.object({
 });
 
 export const updateLoanStatusApiSchema = z.object({
-  status: z.enum(["devuelto", "pendiente", "activo"], {
+  status: z.enum(["devuelto", "pendiente", "activo", "rechazado"], {
     required_error: "El nuevo estado es obligatorio.",
   }),
+  comments: z.string().optional(),
 });
 
 // Schema para implementar la paginación y búsqueda con filtros

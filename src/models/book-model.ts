@@ -231,4 +231,16 @@ export class BookModel {
 
     return result.affectedRows > 0;
   }
+
+  static async incrementAvailableCopies(
+    id: number | string,
+    db: PoolConnection | typeof defaultConnection = defaultConnection
+  ) {
+    const [result] = await db.query<ResultSetHeader>(
+      "UPDATE book SET available_copies = available_copies + 1 WHERE id = ?;",
+      [id]
+    );
+
+    return result.affectedRows > 0;
+  }
 }

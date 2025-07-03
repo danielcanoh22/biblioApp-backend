@@ -5,6 +5,7 @@ import {
   Loan,
   LoansCountQueryResult,
 } from "../types/loan.js";
+import { UpdateLoanStatusApiDTO } from "../schemas/loan.js";
 
 type LoanData = {
   user_id: number;
@@ -87,6 +88,7 @@ export class LoanModel {
         l.loan_date,
         l.due_date,
         l.status,
+        l.comments,
         u.name AS user_name,
         u.email AS user_email,
         b.title AS book_title
@@ -102,6 +104,60 @@ export class LoanModel {
     return { loans, totalItems };
   }
 
-  static async update() {}
+  static async getById(
+    id: number | string,
+    db: PoolConnection | typeof defaultConnection = defaultConnection
+  ) {
+    const [loan] = await db.query<RowDataPacket[]>(
+      `
+        SELECT 
+          l.id,
+            l.loan_date,
+            l.due_date,
+            l.status,
+            u.name AS user_name,
+            u.email AS user_email,
+            u.id AS user_id,
+            b.title AS book_title,
+            b.id AS book_id
+        FROM loan l
+        JOIN user u ON l.user_id = u.id
+        JOIN book b ON l.book_id = b.id
+        WHERE l.id = ?;
+      `,
+      [id]
+    );
+
+    if (loan.length === 0) return undefined;
+
+    return loan[0];
+  }
+
+  static async updateStatus(
+    id: number | string,
+    data: UpdateLoanStatusApiDTO,
+    db: PoolConnection | typeof defaultConnection = defaultConnection
+  ) {
+    const fieldsToUpdate = Object.keys(data);
+    if (fieldsToUpdate.length === 0) return true;
+
+    const setClause = fieldsToUpdate
+      .map((field) => `\`${field}\` = ?`)
+      .join(", ");
+
+    const values = Object.values(data);
+
+    const sql = `
+        UPDATE loan 
+        SET ${setClause}
+        WHERE 
+          id = ?;
+      `;
+
+    const [result] = await db.query<ResultSetHeader>(sql, [...values, id]);
+
+    return result.affectedRows > 0;
+  }
+
   static async delete() {}
 }

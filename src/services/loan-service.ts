@@ -1,10 +1,15 @@
-import { CreateLoanApiDTO, GetLoansQueryDTO } from "../schemas/loan.js";
+import {
+  CreateLoanApiDTO,
+  GetLoansQueryDTO,
+  UpdateLoanStatusApiDTO,
+} from "../schemas/loan.js";
 import { BookModel } from "../models/book-model.js";
 import { AppError } from "../middlewares/error-handler.js";
 import { UserModel } from "../models/user-model.js";
 import { LoanModel } from "../models/loan-model.js";
 import { connection } from "../db/db.js";
 import { PoolConnection } from "mysql2/promise";
+import { LOAN_STATUS } from "../types/loan.js";
 
 const MAX_LOAN_DAYS = 15;
 
@@ -46,8 +51,6 @@ export class LoanService {
         transactionConnection
       );
 
-      await BookModel.decrementAvailableCopies(bookId, transactionConnection);
-
       await transactionConnection.commit();
 
       return newLoan;
@@ -83,5 +86,85 @@ export class LoanService {
         limit,
       },
     };
+  }
+
+  static async getById(id: string | number) {
+    const loan = await LoanModel.getById(id);
+
+    if (!loan) {
+      throw new AppError("Libro no encontrado", 404);
+    }
+
+    return loan;
+  }
+
+  static async updateStatus(
+    loanId: string | number,
+    data: UpdateLoanStatusApiDTO
+  ) {
+    const { status, comments } = data;
+
+    const transactionConnection: PoolConnection =
+      await connection.getConnection();
+    await transactionConnection.beginTransaction();
+
+    try {
+      const loan = await LoanModel.getById(loanId, transactionConnection);
+
+      if (!loan) throw new AppError("La solicitud de préstamo no existe", 404);
+
+      const bookId = loan.book_id;
+      const book = await BookModel.getById(bookId);
+
+      if (!book)
+        throw new AppError("El libro asociado al préstamo no existe", 404);
+
+      const payload: UpdateLoanStatusApiDTO = { status };
+      if (comments) payload.comments = comments;
+
+      switch (status) {
+        case LOAN_STATUS.APPROVED:
+          if (book.available_copies < 1)
+            throw new AppError(
+              "No hay copias disponibles para aprobar este préstamo",
+              409
+            );
+
+          payload.status = LOAN_STATUS.APPROVED;
+          await BookModel.decrementAvailableCopies(
+            bookId,
+            transactionConnection
+          );
+          break;
+        case LOAN_STATUS.RETURNED:
+          payload.status = LOAN_STATUS.RETURNED;
+          await BookModel.incrementAvailableCopies(
+            bookId,
+            transactionConnection
+          );
+          break;
+
+        default:
+          throw new AppError(
+            "No se puede realizar la actualización del estado",
+            400
+          );
+      }
+
+      const isUpdated = await LoanModel.updateStatus(
+        loanId,
+        payload,
+        transactionConnection
+      );
+
+      await transactionConnection.commit();
+
+      return isUpdated;
+    } catch (error) {
+      await transactionConnection.rollback();
+      throw error;
+    } finally {
+      transactionConnection.release();
+    }
   }
 }

@@ -6,6 +6,8 @@ export const createLoansRouter = () => {
 
   loansRouter.post("/", LoanController.create);
   loansRouter.get("/", LoanController.getAll);
+  loansRouter.get("/:id", LoanController.getById);
+  loansRouter.patch("/:id", LoanController.updateStatus);
 
   return loansRouter;
 };
