@@ -1,4 +1,5 @@
 import { RowDataPacket } from "mysql2";
+import { Pagination } from "./types.js";
 
 export enum LOAN_STATUS {
   RETURNED = "devuelto",
@@ -19,10 +20,7 @@ export type LoanFilters = {
 };
 export interface GetAllLoansOptions {
   filters: LoanFilters;
-  pagination: {
-    limit: number;
-    offset: number;
-  };
+  pagination: Pagination;
 }
 
 export interface LoansCountQueryResult extends RowDataPacket {

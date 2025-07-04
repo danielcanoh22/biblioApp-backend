@@ -13,6 +13,8 @@ export const createAuthRouter = () => {
     AuthController.register
   );
   authRouter.post("/login", AuthController.login);
+  authRouter.post("/logout", authMiddleware, AuthController.logout);
+  authRouter.get("/me", authMiddleware, AuthController.getProfile);
 
   return authRouter;
 };

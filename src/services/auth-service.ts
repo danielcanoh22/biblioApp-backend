@@ -2,9 +2,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { AppError } from "../middlewares/error-handler.js";
 import { UserModel } from "../models/user-model.js";
-import { LoginData, RegisterData } from "../types/user.js";
+import { LoginData, RegisterData, USER_ROLE } from "../types/user.js";
 import { CRYPT_SALT_ROUNDS } from "../utils/constants.js";
 import { JWT_SECRET } from "../config/config.js";
+import { JwtPayload } from "../types/express.js";
 
 export class AuthService {
   static async register(data: RegisterData) {

@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { loginSchema, registerSchema } from "../schemas/auth.js";
 import { AuthService } from "../services/auth-service.js";
 import { NODE_ENV } from "../config/config.js";
+import { COOKIE_NAME } from "../utils/constants.js";
+import { AppError } from "../middlewares/error-handler.js";
 
 export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
@@ -39,10 +41,11 @@ export class AuthController {
 
       const { user, token } = await AuthService.login(validationResult.data);
 
-      res.cookie("authToken", token, {
+      res.cookie(COOKIE_NAME, token, {
         httpOnly: true,
         secure: NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax",
+        path: "/",
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -50,5 +53,19 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
+  }
+
+  static async getProfile(req: Request, res: Response, next: NextFunction) {
+    res.status(200).json({
+      data: { user: req.user },
+      succeeded: true,
+    });
+  }
+
+  static async logout(req: Request, res: Response, next: NextFunction) {
+    res.clearCookie(COOKIE_NAME).status(200).json({
+      message: "La sesión se ha cerrado exitosamente",
+      succeeded: true,
+    });
   }
 }
