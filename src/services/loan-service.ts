@@ -75,12 +75,12 @@ export class LoanService {
     const { page, limit, user_email, status } = query;
     const offset = (page - 1) * limit;
 
-    const filters: LoanFilters = { status };
+    const filters: LoanFilters = { status, user_email };
 
-    if (user.role === USER_ROLE.ADMIN) {
-      if (user_email) filters.user_email = user_email;
-      else filters.user_email = user.email;
-    }
+    // if (user.role === USER_ROLE.ADMIN) {
+    //   if (user_email) filters.user_email = user_email;
+    //   else filters.user_email = user.email;
+    // }
 
     const { loans, totalItems } = await LoanModel.getAll({
       filters,

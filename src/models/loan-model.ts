@@ -170,7 +170,7 @@ export class LoanModel {
 
   static async findActiveLoansByBookId(id: number | string) {
     const [loans] = await connection.query<RowDataPacket[]>(
-      "SELECT * FROM loans WHERE book_id = ? AND status IN ('pendiente', 'activo');",
+      "SELECT * FROM loan WHERE book_id = ? AND status IN ('pendiente', 'activo');",
       [id]
     );
     return loans;

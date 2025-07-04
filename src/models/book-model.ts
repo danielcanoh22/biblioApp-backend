@@ -168,22 +168,25 @@ export class BookModel {
   }
 
   static async delete(id: string) {
-    await defaultConnection.beginTransaction();
+    let transactionConnection: PoolConnection | undefined;
 
     try {
-      const [bookDataRows] = await defaultConnection.query<BookIdQueryResult[]>(
-        `SELECT author_id, genre_id FROM book WHERE id = ?`,
-        [id]
-      );
+      transactionConnection = await defaultConnection.getConnection();
+
+      await transactionConnection.beginTransaction();
+
+      const [bookDataRows] = await transactionConnection.query<
+        BookIdQueryResult[]
+      >(`SELECT author_id, genre_id FROM book WHERE id = ?`, [id]);
 
       if (bookDataRows.length === 0) {
-        await defaultConnection.rollback();
+        await transactionConnection.rollback();
         return false;
       }
 
       const { author_id, genre_id } = bookDataRows[0];
 
-      const [deleteResult] = await defaultConnection.query<ResultSetHeader>(
+      const [deleteResult] = await transactionConnection.query<ResultSetHeader>(
         `DELETE FROM book WHERE id = ?`,
         [id]
       );
@@ -191,32 +194,38 @@ export class BookModel {
       if (deleteResult.affectedRows === 0)
         throw new Error("No se pudo eliminar el libro");
 
-      const [authorBooksCountRows] = await defaultConnection.query<
+      const [authorBooksCountRows] = await transactionConnection.query<
         RowDataPacket[]
       >(`SELECT COUNT(*) AS count FROM book WHERE author_id = ?`, [author_id]);
 
       if (authorBooksCountRows[0].count === 0) {
-        await defaultConnection.query("DELETE FROM author WHERE id = ?", [
+        await transactionConnection.query("DELETE FROM author WHERE id = ?", [
           author_id,
         ]);
       }
 
-      const [genreBooksCountRows] = await defaultConnection.query<
+      const [genreBooksCountRows] = await transactionConnection.query<
         RowDataPacket[]
       >(`SELECT COUNT(*) AS count FROM book WHERE genre_id = ?`, [genre_id]);
 
       if (genreBooksCountRows[0].count === 0) {
-        await defaultConnection.query("DELETE FROM genre WHERE id = ?", [
+        await transactionConnection.query("DELETE FROM genre WHERE id = ?", [
           genre_id,
         ]);
       }
 
-      await defaultConnection.commit();
+      await transactionConnection.commit();
 
       return true;
     } catch (error) {
-      await defaultConnection.rollback();
+      if (transactionConnection) {
+        await transactionConnection.rollback();
+      }
       throw new Error("Ocurrió un error al eliminar el libro");
+    } finally {
+      if (transactionConnection) {
+        transactionConnection.release();
+      }
     }
   }
 
