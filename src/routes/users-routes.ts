@@ -9,7 +9,7 @@ export const createUsersRouter = () => {
 
   usersRouter.use(authMiddleware);
   usersRouter.get("/", adminMiddleware, UserController.getAll);
-  usersRouter.get("/:id", adminMiddleware, UserController.getById);
+  usersRouter.get("/:id", UserController.getById);
   usersRouter.patch("/:id", adminMiddleware, UserController.update);
   usersRouter.delete("/:id", adminMiddleware, UserController.delete);
 
