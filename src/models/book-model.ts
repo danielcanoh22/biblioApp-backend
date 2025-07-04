@@ -1,11 +1,12 @@
 import { PoolConnection, ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { BookDbPayload, UpdateBookDbPayload } from "../schemas/book.js";
+
+import { connection as defaultConnection } from "../db/db.js";
 import {
   BookIdQueryResult,
   BooksCountQueryResult,
   GetAllOptions,
-} from "../types/types.js";
-import { connection as defaultConnection } from "../db/db.js";
+} from "../types/book.js";
 
 export class BookModel {
   static async create(data: BookDbPayload) {
@@ -73,6 +74,11 @@ export class BookModel {
     if (filters.genre) {
       whereClauses.push("genre.id = ?");
       values.push(filters.genre);
+    }
+
+    if (filters.title) {
+      whereClauses.push("book.title LIKE ?");
+      values.push(`%${filters.title}%`);
     }
 
     const whereStr =

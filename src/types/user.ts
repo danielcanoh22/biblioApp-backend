@@ -1,5 +1,5 @@
 import { RowDataPacket } from "mysql2";
-import { Pagination } from "./types.js";
+import { Pagination } from "./global.js";
 
 export enum USER_ROLE {
   ADMIN = "admin",

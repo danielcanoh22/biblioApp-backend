@@ -9,7 +9,8 @@ import {
   UpdateBookApiDTO,
   UpdateBookDbPayload,
 } from "../schemas/book.js";
-import { AuthorResolvePayload, GenreResolvePayload } from "../types/types.js";
+import { AuthorResolvePayload } from "../types/author.js";
+import { GenreResolvePayload } from "../types/genre.js";
 
 export class BookService {
   private static async _resolveAuthorId(data: AuthorResolvePayload) {
@@ -50,11 +51,11 @@ export class BookService {
   }
 
   static async getAll(query: GetBooksQueryDTO) {
-    const { page, limit, author, genre } = query;
+    const { page, limit, author, genre, title } = query;
     const offset = (page - 1) * limit;
 
     const { books, totalItems } = await BookModel.getAll({
-      filters: { author, genre },
+      filters: { author, genre, title },
       pagination: { limit, offset },
     });
 

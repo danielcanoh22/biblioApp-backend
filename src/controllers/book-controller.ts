@@ -1,16 +1,16 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../middlewares/error-handler.js";
 import {
-  validateApiBook,
-  validateApiPartialBook,
-  validateQueryParams,
+  createBookApiSchema,
+  getBooksQuerySchema,
+  updateBookApiSchema,
 } from "../schemas/book.js";
 import { BookService } from "../services/book-service.js";
 
 export class BookController {
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = validateApiBook(req.body);
+      const result = createBookApiSchema.safeParse(req.body);
 
       if (!result.success) {
         res
@@ -29,7 +29,7 @@ export class BookController {
 
   static async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const validationResult = validateQueryParams(req.query);
+      const validationResult = getBooksQuerySchema.safeParse(req.query);
 
       if (!validationResult.success) {
         res
@@ -59,7 +59,7 @@ export class BookController {
 
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = validateApiPartialBook(req.body);
+      const result = updateBookApiSchema.safeParse(req.body);
 
       if (!result.success) {
         res

@@ -105,24 +105,13 @@ export type UpdateBookApiDTO = z.infer<typeof updateBookApiSchema>;
 export type BookDbPayload = z.infer<typeof bookDbSchema>;
 export type UpdateBookDbPayload = z.infer<typeof updateBookDbSchema>;
 
-export function validateApiBook(data: unknown) {
-  return createBookApiSchema.safeParse(data);
-}
-
-export function validateApiPartialBook(data: unknown) {
-  return updateBookApiSchema.safeParse(data);
-}
-
 // Schema para implementar la paginación y búsqueda con filtros
 export const getBooksQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(50).optional().default(10),
   author: z.string().optional(),
   genre: z.string().optional(),
+  title: z.string().optional(),
 });
 
 export type GetBooksQueryDTO = z.infer<typeof getBooksQuerySchema>;
-
-export function validateQueryParams(data: unknown) {
-  return getBooksQuerySchema.safeParse(data);
-}

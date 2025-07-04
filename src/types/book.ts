@@ -17,26 +17,11 @@ export interface BookIdQueryResult extends RowDataPacket {
   genre_id: number;
 }
 
-export interface GetAllOptions {
-  filters: { author?: string; genre?: string };
-  pagination: { limit: number; offset: number };
-}
-
 export interface BooksCountQueryResult extends RowDataPacket {
   totalItems: number;
 }
 
-export type AuthorResolvePayload = {
-  author_id?: number | null;
-  new_author_name?: string | null;
-};
-
-export type GenreResolvePayload = {
-  genre_id?: number | null;
-  new_genre_name?: string | null;
-};
-
-export type Pagination = {
-  limit: number;
-  offset: number;
-};
+export interface GetAllOptions {
+  filters: { author?: string; genre?: string; title?: string };
+  pagination: { limit: number; offset: number };
+}

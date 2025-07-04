@@ -3,7 +3,6 @@ import { loginSchema, registerSchema } from "../schemas/auth.js";
 import { AuthService } from "../services/auth-service.js";
 import { NODE_ENV } from "../config/config.js";
 import { COOKIE_NAME } from "../utils/constants.js";
-import { AppError } from "../middlewares/error-handler.js";
 
 export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
