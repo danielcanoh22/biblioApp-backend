@@ -1,7 +1,7 @@
 import cors from "cors";
 import express from "express";
 import { createBooksRouter } from "./routes/books-routes.js";
-import { PORT } from "./config/config.js";
+import { CORS_ORIGIN, PORT } from "./config/config.js";
 import { corsMiddleware } from "./middlewares/cors.js";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { createAuthorsRouter } from "./routes/authors-routes.js";
@@ -19,7 +19,7 @@ app.use(cookieParser());
 // app.use(corsMiddleware());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: CORS_ORIGIN || "http://localhost:5173",
     credentials: true,
   })
 );

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { AppError } from "../middlewares/error-handler.js";
 import { UserModel } from "../models/user-model.js";
 import { LoginData, RegisterData } from "../types/user.js";
-import { CRYPT_SALT_ROUNDS } from "../utils/constants.js";
+import { CRYPT_SALT_ROUNDS, DEFAULT_JWT_SECRET } from "../utils/constants.js";
 import { JWT_SECRET } from "../config/config.js";
 
 export class AuthService {
@@ -47,7 +47,9 @@ export class AuthService {
       role: user.role,
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(payload, JWT_SECRET || DEFAULT_JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     const { password: _, ...userWithoutPassword } = user;
     return { user: userWithoutPassword, token };

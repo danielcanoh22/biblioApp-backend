@@ -77,11 +77,6 @@ export class LoanService {
 
     const filters: LoanFilters = { status, user_email };
 
-    // if (user.role === USER_ROLE.ADMIN) {
-    //   if (user_email) filters.user_email = user_email;
-    //   else filters.user_email = user.email;
-    // }
-
     const { loans, totalItems } = await LoanModel.getAll({
       filters,
       pagination: { limit, offset },

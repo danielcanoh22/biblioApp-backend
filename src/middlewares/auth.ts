@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "./error-handler.js";
-import { JWT_SECRET } from "../config/config.js";
+import { COOKIE_NAME, JWT_SECRET } from "../config/config.js";
 import { JwtPayload } from "../types/express.js";
-import { COOKIE_NAME } from "../utils/constants.js";
+import { DEFAULT_COOKIE_NAME, DEFAULT_JWT_SECRET } from "../utils/constants.js";
 
 export const authMiddleware = (
   req: Request,
@@ -11,13 +11,16 @@ export const authMiddleware = (
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies[COOKIE_NAME];
+    const token = req.cookies[COOKIE_NAME || DEFAULT_COOKIE_NAME];
 
     if (!token) {
       throw new AppError("Acceso denegado. Se requiere autenticación.", 401);
     }
 
-    const decodedPayload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decodedPayload = jwt.verify(
+      token,
+      JWT_SECRET || DEFAULT_JWT_SECRET
+    ) as JwtPayload;
 
     req.user = decodedPayload;
 

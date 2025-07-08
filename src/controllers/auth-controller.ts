@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { loginSchema, registerSchema } from "../schemas/auth.js";
 import { AuthService } from "../services/auth-service.js";
-import { NODE_ENV } from "../config/config.js";
-import { COOKIE_NAME } from "../utils/constants.js";
+import { COOKIE_NAME, NODE_ENV } from "../config/config.js";
+import { DEFAULT_COOKIE_NAME } from "../utils/constants.js";
 
 export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
@@ -40,7 +40,7 @@ export class AuthController {
 
       const { user, token } = await AuthService.login(validationResult.data);
 
-      res.cookie(COOKIE_NAME, token, {
+      res.cookie(COOKIE_NAME || DEFAULT_COOKIE_NAME, token, {
         httpOnly: true,
         secure: NODE_ENV === "production",
         sameSite: "lax",
@@ -62,9 +62,12 @@ export class AuthController {
   }
 
   static async logout(req: Request, res: Response, next: NextFunction) {
-    res.clearCookie(COOKIE_NAME).status(200).json({
-      message: "La sesión se ha cerrado exitosamente",
-      succeeded: true,
-    });
+    res
+      .clearCookie(COOKIE_NAME || DEFAULT_COOKIE_NAME)
+      .status(200)
+      .json({
+        message: "La sesión se ha cerrado exitosamente",
+        succeeded: true,
+      });
   }
 }
