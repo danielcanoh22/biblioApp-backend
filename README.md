@@ -65,7 +65,7 @@ npm install
 
 # Configuración del servidor
 PORT=3000
-NODE_ENV = desarrollo
+NODE_ENV = development # Si es para producción: production
 CORS_ORIGIN = "http://localhost:5173"
 
 # Configuración de la Base de Datos
